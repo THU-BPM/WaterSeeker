@@ -1,0 +1,9 @@
+{
+    "algorithm_name": "AAR",
+    "prefix_length": 2,
+    "eps": 1e-20,
+    "threshold": 1e-6,
+    "sequence_length": 400,
+    "temperature": 0.2,
+    "seed": 42
+}
