@@ -11,15 +11,15 @@ def calculate_iou(indices, gold_start_index, gold_end_index):
         start = pair[0]
         end = pair[1]
         
-        # 计算交集
+        # Calculate intersection
         intersection_start = max(start, gold_start_index)
         intersection_end = min(end, gold_end_index)
         intersection_length = max(0, intersection_end - intersection_start)
 
-        # 计算并集
+        # Calculate union
         union_length = (end - start) + (gold_end_index - gold_start_index) - intersection_length
         
-        # 计算 IoU
+        # Calculate IoU
         if union_length > 0:
             iou = intersection_length / union_length
             max_iou = max(max_iou, iou)

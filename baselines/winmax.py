@@ -38,7 +38,7 @@ if __name__ == '__main__':
                                             vocab_size=32000,
                                             device=device)
 
-    elif args.model == 'mixtral':
+    elif args.model == 'mistral':
         tokenizer = AutoTokenizer.from_pretrained('/data2/shared_model/mistral-7b-v0.1')
 
         transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/data2/shared_model/mistral-7b-v0.1', device_map='auto'),

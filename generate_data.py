@@ -91,7 +91,7 @@ if __name__ == '__main__':
         watermarked_tokens = watermarked_tokens[len(prompt_tokens):]
         
         # truncate watermarked tokens to a random length from min_length to max_length
-        random_length = torch.randint(args.min_length, args.max_length).item()
+        random_length = torch.randint(args.min_length, args.max_length + 1, (1,)).item()
         watermarked_tokens_fragment = watermarked_tokens[:random_length]
 
         # insert watermarked text into a random position in the wiki text and record start_index and end_index
