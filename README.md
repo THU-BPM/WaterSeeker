@@ -1,4 +1,5 @@
 # WaterSeeker: Efficient Detection of Watermarked Segments in Large Documents
+
 <img src="image/waterseeker.png" alt="waterseeker" style="zoom:50%;" />
 
 ### Repo Contents
@@ -12,53 +13,53 @@
 │   ├── num_samples_aar.py           # Plot sample distribution for AAR
 │   └── num_samples_kgw.py           # Plot sample distribution for KGW
 ├── baselines                        # Baseline methods
-│   ├── fix_window.py                
-│   ├── full_text.py                 
-│   └── winmax.py                    
+│   ├── fix_window.py              
+│   ├── full_text.py               
+│   └── winmax.py                  
 ├── config                           # Configuration files
-│   ├── AAR.json                     
-│   └── KGW.json                     
+│   ├── AAR.json                   
+│   └── KGW.json                   
 ├── data                             # Data directory
-│   ├── aar                          
-│   │   ├── llama                    
+│   ├── aar                        
+│   │   ├── llama                  
 │   │   │   └── data.json			 # Aar-llama dataset
-│   │   └── mistral                  
+│   │   └── mistral                
 │   │       └── data.json            # Aar-mistral dataset
-│   ├── c4                           
+│   ├── c4                         
 │   │   └── processed_c4.json        # Processed C4 data
-│   ├── kgw                          
-│   │   ├── llama                    
+│   ├── kgw                        
+│   │   ├── llama                  
 │   │   │   └── data.json            # KGW-llama dataset
-│   │   └── mistral                 
+│   │   └── mistral               
 │   │       └── data.json            # KGW-mistral dataset
-│   └── wikipedia                    
+│   └── wikipedia                  
 │       └── long_document.json       # Wikipedia data
 ├── evaluate.py                      # Evaluation script
 ├── fig/                             # Directory for figures
 ├── generate_data.py                 # Script to construct dataset
-├── README.md                       
-├── requirements.txt                 
-├── script.sh                        
-├── seeker                           
+├── README.md                     
+├── requirements.txt               
+├── script.sh                      
+├── seeker                         
 │   └── seeker.py                    # WaterSeeker Implementation
 ├── threshold_dict                   # Threshold dictionaries
-│   ├── z_threshold_dict_1e6.json    
-│   └── z_threshold_dict_5e7.json    
+│   ├── z_threshold_dict_1e6.json  
+│   └── z_threshold_dict_5e7.json  
 ├── utils                            # Utility functions
-│   ├── compute_z_threshold.py       
+│   ├── compute_z_threshold.py     
 │   ├── success_rate_calculator.py   
-│   ├── transformers_config.py      
-│   └── utils.py                     
+│   ├── transformers_config.py    
+│   └── utils.py                   
 └── watermark                        # Watermarking algorithm implementations
-    ├── aar.py                       
-    ├── kgw.py                       
+    ├── aar.py                     
+    ├── kgw.py                     
 ```
 
 ### Dataset Construction
 
 #### Construct your own datasets
 
-In this repository, we provide `generate_data.py` to assist users in constructing their own dataset. We use the C4 dataset as the corpus for prompts, instructing large language models to generate watermarked segments with lengths between `min_length` and `max_length`. We then use Wikipedia corpus as natural text and randomly insert the watermarked segments into a position within the natural text to construct the data. 
+In this repository, we provide `generate_data.py` to assist users in constructing their own dataset. We use the C4 dataset as the corpus for prompts, instructing large language models to generate watermarked segments with lengths between `min_length` and `max_length`. We then use Wikipedia corpus as natural text and randomly insert the watermarked segments into a position within the natural text to construct the data.
 
 You can simply run the following command:
 
@@ -85,7 +86,7 @@ For each sample in the provided dataset, the data format is as follows:
 
 ```
 {
-	"text": "... Today is a sunny day ...",
+    "text": "... Today is a sunny day ...",
     "flag": 1, 
     "start_index": 1461,
     "end_index": 1673,
@@ -100,9 +101,7 @@ flag: 1 indicates presence of watermark, 0 indicates absence
 #### Conda Environment
 
 - Python 3.11
-
 - Pytorch
-
 - ```
   pip install -r requirements.txt
   ```
@@ -131,11 +130,11 @@ python seeker/seeker.py --watermark aar --targeted_fpr 1e-6 --input_file data/aa
 
 We also provide implementation of baselines mentioned in out paper:
 
-| Baselines                        | Description                                                  |
-| -------------------------------- | ------------------------------------------------------------ |
-| Full-text Detection              | Calculate the detection statistic on the entire document.    |
+| Baselines                        | Description                                                                                                                                                                                                                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full-text Detection              | Calculate the detection statistic on the entire document.                                                                                                                                                                                                                    |
 | WinMax                           | Traverse window size from a min_window_length to a max_window_length. For each window size, scan the entire document sequentially. During this process, calculate the statistical score for each window position and identify the highest score achieved across all windows. |
-| Fix-length Sliding Window (FLSW) | Use a fixed-length window to traverse the entire document, calculating the detection statistic within each window. Select the windows that meet the specified criteria, then merge adjacent qualifying windows to generate the final detection and localization results. |
+| Fix-length Sliding Window (FLSW) | Use a fixed-length window to traverse the entire document, calculating the detection statistic within each window. Select the windows that meet the specified criteria, then merge adjacent qualifying windows to generate the final detection and localization results.     |
 
 You can try the baselines by running the following scripts:
 
@@ -156,10 +155,10 @@ We also provide an evaluation script that accepts a detection log file as input 
 
 ```json
 {
-	'FPR': 0.000,
-	'FNR': 1.000,
-	'F1':  0.000,
-	'Average iou': 0.000
+	"FPR": 0.000,
+	"FNR": 1.000,
+	"F1":  0.000,
+	"Average iou": 0.000
 }
 ```
 
@@ -177,6 +176,3 @@ python evaluate.py --watermark kgw --input_file baseline_result/llama/kgw_seeker
   year={2024}
 }
 ```
-
-
-
