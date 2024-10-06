@@ -3,10 +3,10 @@ import argparse
 from utils.success_rate_calculator import FundamentalSuccessRateCalculator
 
 def calculate_iou(indices, gold_start_index, gold_end_index):
-    """Calculate the Intersection over Union (IoU) between the predicted indices and the ground truth segments."""
-    
-    max_iou = 0.0
-    
+    """Calculate IoU between detected segments and ground truth segment."""
+        
+    intersection_length = 0
+    union_length = 0
     for pair in indices:
         start = pair[0]
         end = pair[1]
@@ -14,17 +14,18 @@ def calculate_iou(indices, gold_start_index, gold_end_index):
         # Calculate intersection
         intersection_start = max(start, gold_start_index)
         intersection_end = min(end, gold_end_index)
-        intersection_length = max(0, intersection_end - intersection_start)
+        intersection_length += max(0, intersection_end - intersection_start)
 
         # Calculate union
-        union_length = (end - start) + (gold_end_index - gold_start_index) - intersection_length
+        union_length += (end - start) + (gold_end_index - gold_start_index) - intersection_length
         
-        # Calculate IoU
-        if union_length > 0:
-            iou = intersection_length / union_length
-            max_iou = max(max_iou, iou)
+    # Calculate IoU
+    if union_length > 0:
+        iou = intersection_length / union_length
+    else:
+        iou = 0
     
-    return max_iou
+    return iou
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('--detection_method', type=str, default='seeker')
     args = parser.parse_args()
 
-    assert args.detection_method in ['seeker', 'flsw', 'plain', 'winmax']
+    assert args.detection_method in ['seeker', 'flsw', 'full', 'winmax']
     
     with open(args.input_file, 'r') as f:
         lines = f.readlines()
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         if gold == 0:
             non_watermarked_result.append(predicted)
         else:
-            if args.detection_method in ['seeker', 'winmax', 'plain']:
+            if args.detection_method in ['seeker', 'winmax', 'full']:
                 iou = calculate_iou(indices, gold_indices[0], gold_indices[1])
                 iou_list.append(iou)
                     

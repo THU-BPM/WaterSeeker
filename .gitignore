@@ -2,3 +2,9 @@ __pycache__/
 
 *.log
 *.out
+script1.sh
+script2.sh
+script3.sh
+script4.sh
+add_non_watermarked.py
+data_*.json

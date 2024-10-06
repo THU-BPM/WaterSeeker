@@ -99,7 +99,7 @@ if __name__ == '__main__':
         insert_position = torch.randint(0, len(tokens), (1,)).item()
         tokens = torch.cat((tokens[:insert_position], watermarked_tokens_fragment, tokens[insert_position:]))
         text = tokenizer.decode(tokens, skip_special_tokens=True)
-        data.append({'text': text, 'flag': 1, 'start_index': insert_position, 'end_index': insert_position+random_length})
+        data.append({'text': text, 'flag': 1, 'start_index': insert_position, 'end_index': insert_position+random_length, 'strength': watermark.config.delta if args.watermark == 'kgw' else watermark.config.temperature})
         index += 1
     
     # save data

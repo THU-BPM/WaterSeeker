@@ -21,6 +21,8 @@ if __name__ == '__main__':
     parser.add_argument('--output_file', type=str, default='kgw_seeker_1_output.log',
                         help='Output file path')
     parser.add_argument('--window_size', type=int, default=50)
+    parser.add_argument('--threshold_1', type=float, default=0.5)
+    parser.add_argument('--threshold_2', type=float, default=1.5)
     parser.add_argument('--min_length', type=int, default=100)
     parser.add_argument('--model', type=str, default='llama')
     parser.add_argument('--key', type=int, default=0)
@@ -72,8 +74,8 @@ if __name__ == '__main__':
             detect_result = watermark.detect_watermark_with_seeker(text=text,
                                                                    targeted_fpr=args.targeted_fpr, 
                                                                    window_size=args.window_size, 
-                                                                   threshold_1=0.5,
-                                                                   threshold_2=1.5,
+                                                                   threshold_1=args.threshold_1,
+                                                                   threshold_2=args.threshold_2,
                                                                    top_k=20,
                                                                    min_length=args.min_length,
                                                                    tolerance=100)
