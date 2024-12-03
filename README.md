@@ -1,4 +1,4 @@
-# WaterSeeker: Efficient Detection of Watermarked Segments in Large Documents
+# WaterSeeker: Pioneering Efficient Detection of Watermarked Segments in Large Documents
 
 <img src="image/waterseeker.png" alt="waterseeker" style="zoom:50%;" />
 
@@ -170,9 +170,8 @@ python evaluate.py --watermark kgw --input_file baseline_result/llama/kgw_seeker
 
 ```
 @article{pan2024waterseeker,
-  title={WaterSeeker: Efficient Detection of Watermarked Segments in Large Documents},
+  title={WaterSeeker: Pioneering Efficient Detection of Watermarked Segments in Large Documents},
   author={Pan, Leyi and Liu, Aiwei and Lu, Yijian and Gao, Zitian and Di, Yichen and Wen, Lijie and King, Irwin and Yu, Philip S},
   journal={arXiv preprint arXiv:2409.05112},
   year={2024}
-}
 ```
