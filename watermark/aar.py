@@ -3,6 +3,7 @@
 # Description: Implementation of Aar algorithm
 # ============================================
 
+import json
 import scipy
 import torch
 import numpy as np
@@ -31,7 +32,6 @@ class AARConfig:
         self.eps = config_dict['eps']
         self.threshold = config_dict['threshold']
         self.sequence_length = config_dict['sequence_length']
-        self.temperature = config_dict['temperature']
         self.seed = config_dict['seed']
 
         self.generation_model = transformers_config.model
@@ -39,6 +39,7 @@ class AARConfig:
         self.vocab_size = transformers_config.vocab_size
         self.device = transformers_config.device
         self.gen_kwargs = transformers_config.gen_kwargs
+        self.temperature = self.gen_kwargs.get('temperature', config_dict['temperature'])
 
 
 class AARUtils:
@@ -153,21 +154,9 @@ class AAR:
         Applies watermarking to the last token's logits and returns the argmax for that token.
         Returns tensor of shape (batch,), where each element is the index of the selected token.
         """
-        # Get the last window
-        last_window = input_ids[:, -self.config.prefix_length:]
-        last_hash = torch.sum(last_window, dim=-1)  # (batch,)
         
-        # Get the gumbel noise for the last window
-        last_gumbel = self.utils.gumbel[last_hash]  # (batch, vocab_size)
-        
-        # Get the last logits
+        # Get the logits for the last token
         last_logits = logits[:, -1, :]  # (batch, vocab_size)
-        
-        # Ensure that the vocab size is not larger than the logits
-        vocab_size = min(last_logits.shape[-1], last_gumbel.shape[-1])
-        
-        # Add the gumbel noise to the logits
-        last_logits[:, :vocab_size] += last_gumbel[:, :vocab_size]
         
         # Get the argmax of the logits
         last_token = torch.argmax(last_logits, dim=-1).unsqueeze(-1)  # (batch,)
@@ -211,6 +200,21 @@ class AAR:
 
         return watermarked_text
 
+    def get_token_score(self, text: str):
+        """Get the token score for the text."""
+        encoded_text = self.config.generation_tokenizer.encode(text, return_tensors='pt', add_special_tokens=False)[0]
+
+        seq_len = len(encoded_text)
+        score = [0 for _ in range(seq_len)]
+
+        for i in range(self.config.prefix_length, seq_len):
+            prev_tokens_sum = torch.sum(encoded_text[i - self.config.prefix_length:i], dim=-1)
+            token = encoded_text[i]
+            u = self.utils.uniform[prev_tokens_sum, token]
+            score[i] = log(1 / (1 - u))
+        
+        return score
+
     def detect_watermark(self, text: str, return_dict: bool = True, *args, **kwargs) -> dict:
         """Full-text Detection."""
 
@@ -237,22 +241,7 @@ class AAR:
             else:
                 return {"is_watermarked": is_watermarked, "indices": []}
     
-    def get_token_score(self, text: str):
-        """Get the token score for the text."""
-        encoded_text = self.config.generation_tokenizer.encode(text, return_tensors='pt', add_special_tokens=False)[0]
-
-        seq_len = len(encoded_text)
-        score = [0 for _ in range(seq_len)]
-
-        for i in range(self.config.prefix_length, seq_len):
-            prev_tokens_sum = torch.sum(encoded_text[i - self.config.prefix_length:i], dim=-1)
-            token = encoded_text[i]
-            u = self.utils.uniform[prev_tokens_sum, token]
-            score[i] = log(1 / (1 - u))
-        
-        return score
-    
-    def detect_watermark_win_max(self, text:str, return_dict: bool = True, min_L: int = 1, max_L=None, *args, **kwargs):
+    def detect_watermark_win_max(self, text:str, return_dict: bool = True, min_L: int = 1, max_L=None, window_interval=1, *args, **kwargs):
         """Detect watermarked segments in the text using WinMax algorithm."""
         
         # Get token score
@@ -265,7 +254,7 @@ class AAR:
         flag_start_idx, flag_end_idx = -1, -1
 
         # Traverse all possible segments
-        for L in range(min_L, max_L + 1):
+        for L in range(min_L, max_L + 1, window_interval):
             for start_idx in range(self.config.prefix_length, len(token_scores) - L + 1):
                 p_value = scipy.stats.gamma.sf(sum(token_scores[start_idx:start_idx + L]), L, loc=0, scale=1)
                 if p_value < min_p_value:
@@ -344,6 +333,36 @@ class AAR:
                             found_in_current_indice = True  
                 if found_in_current_indice:
                     filtered_indices.append(min_index)
+
+            if return_dict:
+                return {"is_watermarked": is_watermarked, "indices": filtered_indices}
+            else:
+                return (is_watermarked, filtered_indices)
+    
+    def detect_watermark_with_seeker_phase_1(self, text: str, return_dict: bool = True, targeted_fpr=1e-4, window_size=50, threshold_1=0.5, threshold_2=1.5, top_k=20, min_length=50, tolerance=100, *args, **kwargs):
+        """Detect watermarked segments in the text using WaterSeeker algorithm."""
+
+        # get token score
+        token_scores = self.get_token_score(text)
+
+        # Suspicous segments localization
+        indices = self.utils.detect_anomalies(token_scores, window_size, threshold_1, threshold_2, top_k, min_length, tolerance)
+
+        if not indices:
+            if return_dict:
+                return {"is_watermarked": False, "indices": []}
+            else:
+                return (False, [])
+        else:
+            is_watermarked = False
+            filtered_indices = []
+
+            # Check if the suspicious segments are watermarked
+            for indice in indices:
+                p_value = scipy.stats.gamma.sf(sum(token_scores[indice[0]:indice[-1]]), indice[-1] - indice[0], loc=0, scale=1)
+                if p_value < targeted_fpr:
+                    is_watermarked = True
+                    filtered_indices.append((indice[0], indice[-1], p_value))
 
             if return_dict:
                 return {"is_watermarked": is_watermarked, "indices": filtered_indices}

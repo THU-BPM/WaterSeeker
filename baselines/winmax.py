@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_file', type=str, default='data/non_watermarked_data.json')
     parser.add_argument('--min_window_length', type=int, default=100)
     parser.add_argument('--max_window_length', type=int, default=400)
+    parser.add_argument('--window_interval', type=int, default=1)
     parser.add_argument('--key', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--output_file', type=str, default='baseline_result/kgw_winmax.log',
@@ -31,17 +32,17 @@ if __name__ == '__main__':
 
     # Load model and tokenizer
     if args.model == 'llama':
-        tokenizer = LlamaTokenizer.from_pretrained('/data2/shared_model/llama-2-7b-hf')
+        tokenizer = LlamaTokenizer.from_pretrained('/workspace/intern_ckpt/panleyi/Llama-2-7b-hf')
 
-        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/data2/shared_model/llama-2-7b-hf', device_map='auto'),
+        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/workspace/intern_ckpt/panleyi/Llama-2-7b-hf', device_map='auto'),
                                             tokenizer=tokenizer,
                                             vocab_size=32000,
                                             device=device)
 
     elif args.model == 'mistral':
-        tokenizer = AutoTokenizer.from_pretrained('/data2/shared_model/mistral-7b-v0.1')
+        tokenizer = AutoTokenizer.from_pretrained('/workspace/intern_ckpt/panleyi/Mistral-7B-v0.1')
 
-        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/data2/shared_model/mistral-7b-v0.1', device_map='auto'),
+        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/workspace/intern_ckpt/panleyi/Mistral-7B-v0.1', device_map='auto'),
                                                 tokenizer=tokenizer,
                                                 vocab_size=32000,
                                                 device=device)
@@ -66,12 +67,10 @@ if __name__ == '__main__':
             loaded_data = json.loads(d)
             text = loaded_data['text']
             flag = loaded_data['flag']
-            start_index = loaded_data['start_index']
-            end_index = loaded_data['end_index']
+            segments = loaded_data['segments']
 
-            detect_result = watermark.detect_watermark_win_max(text=text, min_L=args.min_window_length, max_L=args.max_window_length)
+            detect_result = watermark.detect_watermark_win_max(text=text, min_L=args.min_window_length, max_L=args.max_window_length, window_interval=args.window_interval)
             is_watermarked = detect_result['is_watermarked']
             indices = detect_result['indices']
 
-            f.write(json.dumps({'predicted': is_watermarked, 'indices': indices, 'gold': flag, 'gold_indices': (start_index, end_index)}) + '\n')
-    
+            f.write(json.dumps({'predicted': is_watermarked, 'indices': indices, 'gold': flag, 'gold_indices': segments}) + '\n')

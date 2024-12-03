@@ -36,8 +36,11 @@ fill_color = '#85c1e9'
 peak_color = '#2ecc71'
 background_color = '#f9f9f9'
 
+# 设置Times New Roman字体
+plt.rcParams['font.family'] = 'Times New Roman'
+
 # Create the plot
-plt.figure(figsize=(6, 4))
+plt.figure(figsize=(4, 3))
 plt.rcParams['axes.facecolor'] = background_color
 
 # Plot the z-scores
@@ -50,13 +53,12 @@ plt.fill_between(W_range, z_star, z_scores, where=(np.array(z_scores) > z_star),
 
 # Find the peak z-score
 peak_index = np.argmax(z_scores)
-plt.plot(W_range[peak_index], z_scores[peak_index], 'o', color=peak_color, markersize=10, label='Peak')
+plt.plot(W_range[peak_index], z_scores[peak_index], 'o', color=peak_color, markersize=9, label='Peak')
 
 # Set the labels and title
-plt.xlabel('window size (W)', fontsize=10)
-plt.ylabel('z-score', fontsize=10)
-plt.title('z-score vs window size', fontsize=12)
-plt.legend(fontsize=8)
+plt.xlabel('window size (W)', fontsize=14)
+plt.ylabel('z-score', fontsize=14)
+plt.legend(fontsize=14, prop={'weight': 'bold'})
 plt.grid(True, linestyle='--', alpha=0.3)
 plt.tight_layout()
 

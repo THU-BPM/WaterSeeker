@@ -2,23 +2,29 @@ import json
 import argparse
 from utils.success_rate_calculator import FundamentalSuccessRateCalculator
 
-def calculate_iou(indices, gold_start_index, gold_end_index):
-    """Calculate IoU between detected segments and ground truth segment."""
-        
+def calculate_iou(indices, gold_indices):
+    """Calculate IoU between two sets of segments."""
+    # Calculate total length of predicted segments
+    pred_length = sum(indice[1] - indice[0] for indice in indices)
+    
+    # Calculate total length of gold segments
+    gold_length = sum(indice[1] - indice[0] for indice in gold_indices)
+    
+    # Calculate intersection
     intersection_length = 0
-    union_length = 0
-    for pair in indices:
-        start = pair[0]
-        end = pair[1]
-        
-        # Calculate intersection
-        intersection_start = max(start, gold_start_index)
-        intersection_end = min(end, gold_end_index)
-        intersection_length += max(0, intersection_end - intersection_start)
-
-        # Calculate union
-        union_length += (end - start) + (gold_end_index - gold_start_index) - intersection_length
-        
+    for pred_indice in indices:
+        for gold_indice in gold_indices:
+            pred_start = pred_indice[0]
+            pred_end = pred_indice[1]
+            gold_start = gold_indice[0]
+            gold_end = gold_indice[1]
+            intersection_start = max(pred_start, gold_start)
+            intersection_end = min(pred_end, gold_end)
+            intersection_length += max(0, intersection_end - intersection_start)
+    
+    # Calculate union
+    union_length = pred_length + gold_length - intersection_length
+    
     # Calculate IoU
     if union_length > 0:
         iou = intersection_length / union_length
@@ -31,8 +37,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--watermark', type=str, default='kgw')
     parser.add_argument('--input_file', type=str, default='baseline_result/kgw_seeker.log')
-    parser.add_argument('--output_file', type=str, default='baseline_result_evaluate/kgw_seeker.log')
-    parser.add_argument('--iou_threshold', type=float, default=0.5)
+    parser.add_argument('--iou_threshold', type=float, default=0.0)
     parser.add_argument('--detection_method', type=str, default='seeker')
     args = parser.parse_args()
 
@@ -56,17 +61,16 @@ if __name__ == '__main__':
             non_watermarked_result.append(predicted)
         else:
             if args.detection_method in ['seeker', 'winmax', 'full']:
-                iou = calculate_iou(indices, gold_indices[0], gold_indices[1])
+                iou = calculate_iou(indices, gold_indices)
                 iou_list.append(iou)
                     
                 if predicted and iou > args.iou_threshold:
                     watermarked_result.append(True)
-
                 else:
                     watermarked_result.append(False)
 
             elif args.detection_method == 'flsw':
-                # Merge indices
+                # Merge indices with gap threshold
                 new_indices = [] 
                 for index in indices:
                     if not new_indices:
@@ -76,12 +80,12 @@ if __name__ == '__main__':
                             new_indices[-1][1] = index[1]
                         else:
                             new_indices.append(index)
-                iou = calculate_iou(new_indices, gold_indices[0], gold_indices[1])
+                            
+                iou = calculate_iou(new_indices, gold_indices)
                 iou_list.append(iou)
 
                 if predicted and iou > args.iou_threshold:
                     watermarked_result.append(True)
-
                 else:
                     watermarked_result.append(False)
 
@@ -91,11 +95,3 @@ if __name__ == '__main__':
     result['Average iou'] = sum(iou_list) / len(iou_list) if iou_list else 0
 
     print(result) # {'FPR': xxx, 'FNR': xxx, 'F1': xxx, 'Average iou': xxx}
-
-
-
-
-
-        
-
-    

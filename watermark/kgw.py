@@ -281,7 +281,7 @@ class KGW:
 
         return token_flags
     
-    def detect_watermark_win_max(self, text:str, return_dict: bool = True, min_L: int = 1, max_L=None, *args, **kwargs):
+    def detect_watermark_win_max(self, text:str, return_dict: bool = True, min_L: int = 1, max_L=None, window_interval=1, *args, **kwargs):
         """Detect watermark in the text using WinMax algorithm."""
         
         # Get token flags
@@ -294,7 +294,7 @@ class KGW:
         flag_start_idx, flag_end_idx = -1, -1
 
         # Traverse all possible windows
-        for L in range(min_L, max_L + 1):
+        for L in range(min_L, max_L + 1, window_interval):
             for start_idx in range(self.config.prefix_length, len(token_flags) - L + 1):
                 z_score = self.utils.score_sequence_by_window(token_flags, start_idx, start_idx + L)
                 if z_score > max_z_score:
@@ -337,7 +337,7 @@ class KGW:
             return {"is_watermarked": is_watermarked, "indices": indices}
         else:
             return (is_watermarked, indices)
-            
+    
     def detect_watermark_with_seeker(self, text: str, return_dict: bool = True, targeted_fpr=1e-6, window_size=50, threshold_1=0.5, threshold_2=1.5, top_k=20, min_length=100, tolerance=100, *args, **kwargs):
         """Detect watermarked segments in the text using WaterSeeker algorithm."""
 
@@ -386,4 +386,37 @@ class KGW:
                 return {"is_watermarked": is_watermarked, "indices": filtered_indices}
             else:
                 return (is_watermarked, filtered_indices)
+    
+    def detect_watermark_with_seeker_phase_1(self, text: str, return_dict: bool = True, targeted_fpr=1e-6, window_size=50, threshold_1=0.5, threshold_2=1.5, top_k=20, min_length=100, tolerance=100, *args, **kwargs):
+        """Detect watermarked segments in the text using WaterSeeker algorithm."""
 
+        # Get token flags
+        token_flags = self.get_token_flags(text)
+
+        # Suspicous segments localization
+        indices = self.utils.detect_anomalies(token_flags, window_size, threshold_1, threshold_2, top_k, min_length, tolerance)
+        
+        if not indices:
+            if return_dict:
+                return {"is_watermarked": False, "indices": []}
+            else:
+                return (False, [])
+        else:
+            filtered_indices = []
+            is_watermarked = False
+            for indice in indices:
+                start_idx = indice[0]
+                end_idx = indice[-1]
+                z_score = self.utils.score_sequence_by_window(token_flags, start_idx, end_idx)
+                if end_idx - start_idx > 1000:
+                    z_threshold = self.config.z_threshold_dict['1000']
+                else:
+                    z_threshold = self.config.z_threshold_dict[str(end_idx - start_idx)]
+                if z_score > z_threshold:
+                    filtered_indices.append((start_idx, end_idx, z_score))
+                    is_watermarked = True
+            
+            if return_dict:
+                return {"is_watermarked": is_watermarked, "indices": filtered_indices}
+            else:
+                return (is_watermarked, filtered_indices)

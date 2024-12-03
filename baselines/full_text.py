@@ -29,17 +29,17 @@ if __name__ == '__main__':
 
     # Load model and tokenizer
     if args.model == 'llama':
-        tokenizer = LlamaTokenizer.from_pretrained('/data2/shared_model/llama-2-7b-hf')
+        tokenizer = LlamaTokenizer.from_pretrained('/workspace/intern_ckpt/panleyi/Llama-2-7b-hf')
 
-        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/data2/shared_model/llama-2-7b-hf', device_map='auto'),
+        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/workspace/intern_ckpt/panleyi/Llama-2-7b-hf', device_map='auto'),
                                             tokenizer=tokenizer,
                                             vocab_size=32000,
                                             device=device)
 
     elif args.model == 'mistral':
-        tokenizer = AutoTokenizer.from_pretrained('/data2/shared_model/mistral-7b-v0.1')
+        tokenizer = AutoTokenizer.from_pretrained('/workspace/intern_ckpt/panleyi/Mistral-7B-v0.1')
 
-        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/data2/shared_model/mistral-7b-v0.1', device_map='auto'),
+        transformers_config = TransformersConfig(model=AutoModelForCausalLM.from_pretrained('/workspace/intern_ckpt/panleyi/Mistral-7B-v0.1', device_map='auto'),
                                                 tokenizer=tokenizer,
                                                 vocab_size=32000,
                                                 device=device)
@@ -64,12 +64,11 @@ if __name__ == '__main__':
             loaded_data = json.loads(d)
             text = loaded_data['text']
             flag = loaded_data['flag']
-            start_index = loaded_data['start_index']
-            end_index = loaded_data['end_index']
+            segments = loaded_data['segments']
 
             detect_result = watermark.detect_watermark(text=text)
             is_watermarked = detect_result['is_watermarked']
             indices = detect_result['indices']
 
-            f.write(json.dumps({'predicted': is_watermarked, 'indices': indices, 'gold': flag, 'gold_indices': (start_index, end_index)}) + '\n')
+            f.write(json.dumps({'predicted': is_watermarked, 'indices': indices, 'gold': flag, 'gold_indices': segments}) + '\n')
     
