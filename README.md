@@ -174,9 +174,27 @@ python evaluate.py --watermark kgw \
 ### Citation
 
 ```
-@article{pan2024waterseeker,
-  title={WaterSeeker: Pioneering Efficient Detection of Watermarked Segments in Large Documents},
-  author={Pan, Leyi and Liu, Aiwei and Lu, Yijian and Gao, Zitian and Di, Yichen and Wen, Lijie and King, Irwin and Yu, Philip S},
-  journal={arXiv preprint arXiv:2409.05112},
-  year={2024}
+@inproceedings{pan-etal-2025-waterseeker,
+    title = "{W}ater{S}eeker: Pioneering Efficient Detection of Watermarked Segments in Large Documents",
+    author = "Pan, Leyi  and
+      Liu, Aiwei  and
+      Lu, Yijian  and
+      Gao, Zitian  and
+      Di, Yichen  and
+      Wen, Lijie  and
+      King, Irwin  and
+      Yu, Philip S.",
+    editor = "Chiruzzo, Luis  and
+      Ritter, Alan  and
+      Wang, Lu",
+    booktitle = "Findings of the Association for Computational Linguistics: NAACL 2025",
+    month = apr,
+    year = "2025",
+    address = "Albuquerque, New Mexico",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.findings-naacl.156/",
+    pages = "2866--2882",
+    ISBN = "979-8-89176-195-7",
+    abstract = "Watermarking algorithms for large language models (LLMs) have attained high accuracy in detecting LLM-generated text. However, existing methods primarily focus on distinguishing fully watermarked text from non-watermarked text, overlooking real-world scenarios where LLMs generate only small sections within large documents. In this scenario, balancing time complexity and detection performance poses significant challenges. This paper presents WaterSeeker, a novel approach to efficiently detect and locate watermarked segments amid extensive natural text. It first applies an efficient anomaly extraction method to preliminarily locate suspicious watermarked regions. Following this, it conducts a local traversal and performs full-text detection for more precise verification. Theoretical analysis and experimental results demonstrate that WaterSeeker achieves a superior balance between detection accuracy and computational efficiency. Moreover, its localization capability lays the foundation for building interpretable AI detection systems. Our code is available at https://github.com/THU-BPM/WaterSeeker."
+}
 ```
